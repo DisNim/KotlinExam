@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:orientation="vertical"
+    android:layout_margin="10dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Решение квадротного уравнения"
+        android:gravity="center_horizontal"
+        android:paddingTop="10dp"
+        android:textSize="20sp"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ax^2+bx+c=0"
+        android:gravity="center_horizontal"
+        android:paddingTop="10dp"
+        android:textSize="20sp"/>
+    <EditText
+        android:id="@+id/AEnterBox"
+        android:inputType="numberSigned"
+        android:hint="Введите a"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <EditText
+        android:id="@+id/BEnterBox"
+        android:inputType="numberSigned"
+        android:hint="Введите b"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+    <EditText
+    android:id="@+id/CEnterBox"
+    android:inputType="numberSigned"
+    android:hint="Введите C"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    />
+
+    <Button
+        android:id="@+id/CalculationButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Расчитать"
+        android:layout_marginTop="20dp"
+        android:width="250dp"
+        android:layout_gravity="center_horizontal"/>
+
+    <TextView
+        android:id="@+id/ResultText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Результат:"
+        android:textSize="18sp"
+        android:layout_marginTop="30dp"/>
+</LinearLayout>
