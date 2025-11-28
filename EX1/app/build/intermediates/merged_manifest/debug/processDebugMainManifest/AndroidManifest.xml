@@ -27,7 +27,10 @@
         android:supportsRtl="true"
         android:testOnly="true"
         android:theme="@style/Theme.EX1" >
-        <service android:name="com.example.ex1.FibonacciService" />
+        <service
+            android:name="com.example.ex1.FibonacciService"
+            android:enabled="true"
+            android:exported="true" />
 
         <activity
             android:name="com.example.ex1.MainActivity"

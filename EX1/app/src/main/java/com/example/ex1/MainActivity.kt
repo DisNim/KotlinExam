@@ -1,11 +1,13 @@
 package com.example.ex1
 
+import android.app.Service
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
+import android.content.ServiceConnection
+import android.os.Binder
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,12 +16,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,8 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
+import android.os.IBinder
+import androidx.compose.ui.unit.sp
+import com.example.ex1.ui.theme.EX1Theme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,87 +45,50 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun View(){
-    var isStarted by remember{mutableStateOf(false)}
+fun View() {
+
+    val intent = Intent(LocalContext.current, FibonacciService::class.java)
     val context = LocalContext.current
-    var calculationStatus by remember { mutableStateOf("Готов к вычислениям") }
-    var fibonacciResults by remember {mutableStateOf<List<FibonacciItem>>(emptyList())}
 
-    val intent = remember { Intent(context, FibonacciService::class.java).apply {
-        action = FibonacciService.ACTION_START_CALCULATION
-        putExtra(FibonacciService.EXTRA_MAX_NUMBER, 10000)
-    }}
-    val stopIntent = remember{Intent(context, FibonacciService::class.java).apply {
-        action = FibonacciService.ACTION_STOP_CALCULATION
-    }}
+    var isStart by remember { mutableStateOf(false) }
+    var result by remember {mutableStateOf("Расчет выполняется здесь")}
 
-    val fibonacciReceiver = remember {
-        object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                when (intent?.getStringExtra("action")) {
-                    "STARTED" -> {
-                        if (!isStarted) return
-                        calculationStatus = "Вычисления начаты"
-                    }
-                    "CALCULATION" -> {
-                        val n = intent.getIntExtra("number", 0)
-                        val res = intent.getStringExtra("result") ?: return
-
-                        fibonacciResults = fibonacciResults + FibonacciItem(n, res)
-                        calculationStatus = "Вычисление чисел: ${fibonacciResults.size}"
-                    }
-                    "COMPLETED" -> {
-                        calculationStatus = "Вычисления завершены! Всего чисел: ${fibonacciResults.size}"
-                        isStarted = false
-                    }
-                    "STOPPED" -> {
-                        calculationStatus = "Вычисления остановлены. Вычислено чисел: ${fibonacciResults.size}"
-                        isStarted = false
-                    }
-                    "ERROR" -> {
-                        val message = intent.getStringExtra("message") ?: "Неизвестная ошибка"
-                        calculationStatus = "Ошибка: $message"
-                        isStarted = false
-                    }
-                }
-            }
+    val serviceConnection = remember{object: ServiceConnection{
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as FibonacciService.FibonacciBinder
+            binder.setCallback { number -> result = number.toString() }
         }
-    }
 
-    DisposableEffect(Unit) {
-        val filter = IntentFilter("FIBONACCI_ACTION")
-        ContextCompat.registerReceiver(
-            context,
-            fibonacciReceiver,
-            filter,
-            ContextCompat.RECEIVER_EXPORTED
-        )
-        onDispose { context.unregisterReceiver(fibonacciReceiver) }
-    }
+        override fun onServiceDisconnected(name: ComponentName?) {
 
+        }
+    }}
     Column(modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center) {
 
-        Text(text="Сатус вычисления: ${calculationStatus}")
+        Text(result, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(30.dp))
-        Button(onClick = {
-            if (!isStarted){
-                fibonacciResults = emptyList()
+        Button(onClick={
+            if (!isStart){
                 context.startService(intent)
-                isStarted = true
+                context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+                isStart = true
             }
             else {
-                context.stopService(stopIntent)
-                isStarted = false
+                context.stopService(intent)
+                context.unbindService(serviceConnection)
+                isStart = false
             }
-        }) { Text(text = if (!isStarted) "Начать вычисления" else "Остановить высичления")}
-        Spacer(modifier = Modifier.height(30.dp))
-        Text("Результаты появятся здесь")
-        LazyRow {
-            items(items = fibonacciResults, key = {it.number}){item -> Text("F(${item.number}) = ${item.result} ")}
+        }){
+            Text(text = if (!isStart) "Начать расчет" else "Остановить")
         }
+
     }
 }
 
-data class FibonacciItem(val number: Int, val result: String)
+@Preview(showBackground = true)
+@Composable
+fun ViewPreview() {
+    View()
+}
